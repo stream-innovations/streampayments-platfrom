@@ -1,0 +1,1118 @@
+{
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Welcome to the **StreamPay Merchant API**!\nHere you can find all available endpoints for creating and processing payments.\n\nIf you want to exercise the API via SDK for preferred language, you can easily generate one by\ndownloading this spec (click the button above), then go to\n\u003ca href=\"https://editor.swagger.io\" target=\"_blank\"\u003eSwagger Editor\u003c/a\u003e, paste the spec and click \"Generate Client\"\nin top toolbar. If you're using Golang, we suggest generating SDK with\n\u003ca href=\"https://github.com/go-swagger/go-swagger\" target=\"_blank\"\u003ego-swagger\u003c/a\u003e.\n\n## Authentication 🔐\nAPI uses token based authentication that you need to provide in each request. `X-STREAM-TOKEN` is used as key. \nYou can obtain API token in merchant's settings in dashboard at\n\u003ca href=\"https://app.streampayments.co\" target=\"_blank\"\u003eapp.streampayments.co\u003c/a\u003e\n\nExample request:\n```bash\n  curl --header 'X-STREAM-TOKEN: \u003cyour-token\u003e' \\\n    https://api.streampayments.co/api/merchant/v1/merchant/5a51e7a5-f0c8-48dc-a9fb-a335481ae846/balance\n```\n\nUnauthorized requests return `401 Unauthorized` response:\n```json\n{\n  \"message\": \"Unauthorized\",\n  \"status\": \"token_error\"\n}\n```\n\n## Quickstart 🚀\n- [Create payment](#tag/Payment/operation/createPayment) \n",
+        "title": "StreamPay Merchant API",
+        "version": "1.0.0"
+    },
+    "host": "api.streampayments.co",
+    "basePath": "/api/merchant/v1",
+    "paths": {
+        "/merchant/{merchantId}/balance": {
+            "get": {
+                "description": "Returns list of existing balances. \nA balance is a unique ledger per currency, blockchain and network (mainnet, testnet)\n",
+                "tags": [
+                    "Balances"
+                ],
+                "summary": "List Balances",
+                "operationId": "listMerchantBalances",
+                "parameters": [{
+                    "type": "string",
+                    "description": "Merchant UUID",
+                    "name": "merchantId",
+                    "in": "path",
+                    "required": true
+                }],
+                "responses": {
+                    "200": {
+                        "description": "Balances",
+                        "schema": {
+                            "$ref": "#/definitions/merchantBalanceList"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/customer": {
+            "get": {
+                "description": "Paginates customers based on provided cursor. Empty cursor indicates that there are no more results",
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "List customers",
+                "operationId": "listCustomer",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor (pagination \"offset\")",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Reverse pagination order (orders by \"DESC\")",
+                        "name": "reverseOrder",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customers list",
+                        "schema": {
+                            "$ref": "#/definitions/customersPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error / Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/customer/{customerId}": {
+            "get": {
+                "tags": [
+                    "Customer"
+                ],
+                "summary": "Get customer details",
+                "operationId": "getCustomerDetails",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Customer UUID",
+                        "name": "customerId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Customer details",
+                        "schema": {
+                            "$ref": "#/definitions/customer"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error / Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/payment": {
+            "get": {
+                "description": "Paginates payments based on provided cursor. Empty cursor indicates that there are no more results\n",
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "List Payments",
+                "operationId": "listPayments",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor (pagination \"offset\")",
+                        "name": "cursor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Reverse pagination order (orders by \"DESC\")",
+                        "name": "reverseOrder",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "payment",
+                            "withdrawal"
+                        ],
+                        "type": "string",
+                        "description": "Filtration by payment type. Useful when, for example, you want to filter by withdrawals only\n",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payments list",
+                        "schema": {
+                            "$ref": "#/definitions/paymentsPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates payment. The response contains `.paymentUrl` where customer should be redirected to by your system.\n",
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Create payment",
+                "operationId": "createPayment",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Payment request",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/createPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Payment created",
+                        "schema": {
+                            "$ref": "#/definitions/payment"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/payment-link": {
+            "get": {
+                "tags": [
+                    "PaymentLink"
+                ],
+                "summary": "List payment links",
+                "operationId": "listPaymentLinks",
+                "parameters": [{
+                    "type": "string",
+                    "description": "Merchant UUID",
+                    "name": "merchantId",
+                    "in": "path",
+                    "required": true
+                }],
+                "responses": {
+                    "200": {
+                        "description": "PaymentLinks List",
+                        "schema": {
+                            "$ref": "#/definitions/paymentLinksPagination"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "PaymentLink"
+                ],
+                "summary": "Create payment link",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/createPaymentLinkRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "PaymentLink created",
+                        "schema": {
+                            "$ref": "#/definitions/paymentLink"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/payment-link/{paymentLinkId}": {
+            "get": {
+                "tags": [
+                    "PaymentLink"
+                ],
+                "summary": "Get payment link",
+                "operationId": "getPaymentLink",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Payment Link UUID",
+                        "name": "paymentLinkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PaymentLink",
+                        "schema": {
+                            "$ref": "#/definitions/paymentLink"
+                        }
+                    },
+                    "400": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "PaymentLink"
+                ],
+                "summary": "Delete payment link",
+                "operationId": "deletePaymentLink",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Payment Link UUID",
+                        "name": "paymentLinkId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "400": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/merchant/{merchantId}/payment/{paymentId}": {
+            "get": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Get payment",
+                "operationId": "getPayment",
+                "parameters": [{
+                        "type": "string",
+                        "description": "Merchant UUID",
+                        "name": "merchantId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Payment UUID",
+                        "name": "paymentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment",
+                        "schema": {
+                            "$ref": "#/definitions/payment"
+                        }
+                    },
+                    "400": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/errorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "additionalPaymentInfo": {
+            "description": "Additional payment info",
+            "type": "object",
+            "required": [
+                "customerEmail",
+                "selectedCurrency",
+                "serviceFee"
+            ],
+            "properties": {
+                "customerEmail": {
+                    "description": "Customer's Email",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "user@gmail.com"
+                },
+                "selectedCurrency": {
+                    "description": "Customer's selected crypto currency",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "USDT (Ethereum)"
+                },
+                "serviceFee": {
+                    "description": "Service fee in customer's selected crypto currency",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "1.20"
+                }
+            },
+            "x-nullable": true,
+            "x-omitempty": true
+        },
+        "additionalWithdrawalInfo": {
+            "description": "Additional withdrawal info",
+            "type": "object",
+            "required": [
+                "addressId",
+                "balanceId",
+                "transactionHash",
+                "explorerLink",
+                "serviceFee"
+            ],
+            "properties": {
+                "addressId": {
+                    "description": "Address UUID",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "dac3a5f5-abc1-4bb2-97e7-db51360e218c"
+                },
+                "balanceId": {
+                    "description": "Balance UUID",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "918c5aa6-bdad-4cc8-8aa0-de059c618a05"
+                },
+                "explorerLink": {
+                    "description": "Link to blockchain explorer",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "https://etherscan.io/tx/0xdf147859a6e66961326ac91f4bd5e9980432040031e5eb7108603d51b81ae005"
+                },
+                "serviceFee": {
+                    "description": "Withdrawal Fee",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "1.20"
+                },
+                "transactionHash": {
+                    "description": "Transaction Hash",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "0xdf147859a6e66961326ac91f4bd5e9980432040031e5eb7108603d51b81ae005"
+                }
+            },
+            "x-omitempty": true
+        },
+        "createPaymentLinkRequest": {
+            "description": "Payment Link object",
+            "type": "object",
+            "required": [
+                "name",
+                "currency",
+                "price",
+                "successAction"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "Fiat ticker for payment template.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "EUR"
+                    ],
+                    "x-nullable": false
+                },
+                "description": {
+                    "description": "Optional payment description visible for a customer in payment screen",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "White T-shirt size M"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 4,
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "My Link"
+                },
+                "price": {
+                    "description": "Price in fiat currency",
+                    "type": "number",
+                    "format": "float32",
+                    "minimum": 0.01,
+                    "x-nullable": false,
+                    "example": 29.9
+                },
+                "redirectUrl": {
+                    "description": "Redirect URL after successful customer's payment",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "https://my-site.com/success?order=abc123"
+                },
+                "successAction": {
+                    "description": "Action type after StreamPay receives incoming payment from a customer.\n- `redirectUrl` displays \"Back to site\" button with provided .redirectUrl.\n- `showMessage` displays \"Show message\" with content provided in .successMessage.\n",
+                    "type": "string",
+                    "enum": [
+                        "redirect",
+                        "showMessage"
+                    ],
+                    "x-nullable": false,
+                    "x-omitempty": false
+                },
+                "successMessage": {
+                    "description": "message after successful customer's payment",
+                    "type": "string",
+                    "maxLength": 250,
+                    "minLength": 4,
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "Thank you!"
+                }
+            }
+        },
+        "createPaymentRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "currency",
+                "price"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "Fiat currency",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "EUR"
+                    ],
+                    "x-nullable": false
+                },
+                "description": {
+                    "description": "Optional payment description",
+                    "type": "string",
+                    "maxLength": 128,
+                    "x-nullable": true,
+                    "example": "White T-shirt size M"
+                },
+                "id": {
+                    "description": "To provide request idempotency order UUID should be generated on your side. \nShould be unique for each payment\n",
+                    "type": "string",
+                    "format": "uuid",
+                    "x-nullable": false,
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                },
+                "isTest": {
+                    "description": "Indicates that this is a test payment.\nTest payments are processed in testnets (e.g. Ethereum Goerli)\n",
+                    "type": "boolean",
+                    "x-nullable": false
+                },
+                "orderId": {
+                    "description": "Optional order ID from your internal system",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "customer#123#order#456"
+                },
+                "price": {
+                    "description": "Price in fiat currency",
+                    "type": "number",
+                    "format": "float32",
+                    "minimum": 0.01,
+                    "x-nullable": false,
+                    "example": 29.9
+                },
+                "redirectUrl": {
+                    "description": "A \"back to store\" button URL. Visible to a customer after the system receives unconfirmed transaction.\nIf not provided, defaults to merchant's website url.\n",
+                    "type": "string",
+                    "format": "url",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "https://my-store.com/success"
+                }
+            }
+        },
+        "customer": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "CreatedAt",
+                    "type": "string",
+                    "format": "datetime",
+                    "x-nullable": false
+                },
+                "details": {
+                    "description": "Customer Details. Available only in `getCustomerDetails` endpoint",
+                    "type": "object",
+                    "properties": {
+                        "payments": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/customerPayment"
+                            },
+                            "x-nullable": false,
+                            "x-omitempty": false
+                        },
+                        "successfulPayments": {
+                            "description": "Number of successful payments",
+                            "type": "integer",
+                            "x-nullable": false,
+                            "x-omitempty": false
+                        }
+                    },
+                    "x-omitempty": true
+                },
+                "email": {
+                    "description": "Email",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "customer@example.com"
+                },
+                "id": {
+                    "description": "Customer UUID",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "A9B04890-7FB9-42C6-A63B-9163968E4580"
+                }
+            }
+        },
+        "customerPayment": {
+            "description": "Payment object",
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "description": "Created timestamp",
+                    "type": "string",
+                    "format": "datetime",
+                    "x-nullable": false,
+                    "example": "2022-11-23 19:49:21.386201 +0000 UTC"
+                },
+                "currency": {
+                    "description": "Fiat currency",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "EUR"
+                    ],
+                    "x-nullable": false
+                },
+                "id": {
+                    "description": "Order UUID",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                },
+                "price": {
+                    "description": "Payment price",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": 29.9
+                },
+                "status": {
+                    "description": "Payment status",
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "inProgress",
+                        "success",
+                        "failed"
+                    ],
+                    "x-nullable": false
+                }
+            }
+        },
+        "customersPagination": {
+            "type": "object",
+            "required": [
+                "limit",
+                "cursor",
+                "results"
+            ],
+            "properties": {
+                "cursor": {
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "8c857501-e67d-4a0b-98d9-46e461b42c09"
+                },
+                "limit": {
+                    "type": "integer",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": 50
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/customer"
+                    },
+                    "x-nullable": false,
+                    "x-omitempty": false
+                }
+            }
+        },
+        "errorResponse": {
+            "type": "object",
+            "properties": {
+                "errors": {
+                    "description": "Errors list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/errorResponseItem"
+                    },
+                    "x-nullable": false,
+                    "x-omitempty": true
+                },
+                "message": {
+                    "description": "Error Message",
+                    "type": "string",
+                    "example": "Error message"
+                },
+                "status": {
+                    "description": "Error status",
+                    "type": "string",
+                    "example": "something_wrong"
+                }
+            }
+        },
+        "errorResponseItem": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "description": "Error field",
+                    "type": "string",
+                    "example": "field"
+                },
+                "message": {
+                    "description": "Error Message",
+                    "type": "string",
+                    "example": "Error message"
+                }
+            }
+        },
+        "merchantBalance": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "description": "Assets amount in balance currency",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "50.40"
+                },
+                "blockchain": {
+                    "description": "Blockchain network",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "ETH"
+                },
+                "blockchainName": {
+                    "description": "Blockchain name",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "Ethereum"
+                },
+                "currency": {
+                    "description": "Currency name",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "USDT"
+                },
+                "id": {
+                    "description": "Balance identifier",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                },
+                "isTest": {
+                    "description": "Indicates whether balance is test or not",
+                    "type": "boolean",
+                    "x-omitempty": false
+                },
+                "minimalWithdrawalAmountUSD": {
+                    "description": "Minimal withdrawal amount in USD",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "50"
+                },
+                "name": {
+                    "description": "Balance name",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "USDT (Ethereum)"
+                },
+                "ticker": {
+                    "description": "Currency ticker",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "ETH_USDT"
+                },
+                "usdAmount": {
+                    "description": "Assets amount in USD",
+                    "type": "string",
+                    "x-omitempty": false,
+                    "example": "50.40"
+                }
+            }
+        },
+        "merchantBalanceList": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/merchantBalance"
+                    }
+                }
+            }
+        },
+        "payment": {
+            "description": "Payment object",
+            "type": "object",
+            "required": [
+                "id",
+                "type",
+                "status",
+                "createdAt",
+                "currency",
+                "price",
+                "isTest"
+            ],
+            "properties": {
+                "additionalInfo": {
+                    "description": "Represents additional context for payment or withdrawal",
+                    "type": "object",
+                    "properties": {
+                        "payment": {
+                            "$ref": "#/definitions/additionalPaymentInfo"
+                        },
+                        "withdrawal": {
+                            "$ref": "#/definitions/additionalWithdrawalInfo"
+                        }
+                    },
+                    "x-nullable": true,
+                    "x-omitempty": true
+                },
+                "createdAt": {
+                    "description": "Created timestamp",
+                    "type": "string",
+                    "format": "datetime",
+                    "x-nullable": false,
+                    "example": "2022-11-23 19:49:21.386201 +0000 UTC"
+                },
+                "currency": {
+                    "description": "Fiat ticker for payments and crypto for withdrawals\n",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "USD"
+                },
+                "description": {
+                    "description": "Optional payment description that customer will see in payment screen",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "White T-shirt size M"
+                },
+                "id": {
+                    "description": "Order UUID generated on your side",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                },
+                "isTest": {
+                    "description": "Indicates that this is a test payment.\nTest payments are processed in testnets (e.g. Ethereum Goerli)\n",
+                    "type": "boolean",
+                    "x-nullable": false,
+                    "x-omitempty": false
+                },
+                "orderId": {
+                    "description": "Optional order ID from your system.",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "order#123"
+                },
+                "paymentUrl": {
+                    "description": "URL for client payment screen",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "https://pay.streampayments.co/payment/00000000-0000-0000-0000-000000000000"
+                },
+                "price": {
+                    "description": "Payment price or withdrawal amount",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": 29.9
+                },
+                "redirectUrl": {
+                    "description": "Redirect URL after success client's payment",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "https://my-site.com/success?order=abc123"
+                },
+                "status": {
+                    "description": "Payment status",
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "inProgress",
+                        "success",
+                        "failed"
+                    ],
+                    "x-nullable": false
+                },
+                "type": {
+                    "description": "Payment type",
+                    "type": "string",
+                    "enum": [
+                        "payment",
+                        "withdrawal"
+                    ],
+                    "x-nullable": false
+                }
+            }
+        },
+        "paymentLink": {
+            "description": "Payment Link object",
+            "type": "object",
+            "required": [
+                "id",
+                "createdAt",
+                "url",
+                "name",
+                "currency",
+                "price",
+                "successAction"
+            ],
+            "properties": {
+                "createdAt": {
+                    "description": "Created At timestamp",
+                    "type": "string",
+                    "format": "datetime",
+                    "x-nullable": false,
+                    "example": "2022-11-23 19:49:21.386201 +0000 UTC"
+                },
+                "currency": {
+                    "description": "Fiat ticker for payment template.",
+                    "type": "string",
+                    "enum": [
+                        "USD",
+                        "EUR"
+                    ],
+                    "x-nullable": false
+                },
+                "description": {
+                    "description": "Optional payment description visible for a customer in payment screen",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "White T-shirt size M"
+                },
+                "id": {
+                    "description": "Link's UUID",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": "123e4567-e89b-12d3-a456-426655440000"
+                },
+                "name": {
+                    "description": "Name",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "My Link"
+                },
+                "price": {
+                    "description": "Payment price",
+                    "type": "string",
+                    "x-nullable": false,
+                    "example": 29.9
+                },
+                "redirectUrl": {
+                    "description": "Redirect URL after successful customer's payment",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false,
+                    "example": "https://my-site.com/success?order=abc123"
+                },
+                "successAction": {
+                    "description": "Action type after StreamPay receives incoming payment from a customer.\n- `redirectUrl` displays \"Back to site\" button with provided .redirectUrl.\n- `showMessage` displays \"Show message\" with content provided in .successMessage.\n",
+                    "type": "string",
+                    "enum": [
+                        "redirect",
+                        "showMessage"
+                    ],
+                    "x-nullable": false,
+                    "x-omitempty": false
+                },
+                "successMessage": {
+                    "description": "message after successful customer's payment",
+                    "type": "string",
+                    "x-nullable": true,
+                    "x-omitempty": false
+                },
+                "url": {
+                    "description": "Link's URL",
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "https://pay.streampayments.co/link/ufaiCu6J"
+                }
+            }
+        },
+        "paymentLinksPagination": {
+            "type": "object",
+            "required": [
+                "results"
+            ],
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/paymentLink"
+                    },
+                    "x-nullable": false,
+                    "x-omitempty": false
+                }
+            }
+        },
+        "paymentsPagination": {
+            "type": "object",
+            "required": [
+                "limit",
+                "cursor",
+                "results"
+            ],
+            "properties": {
+                "cursor": {
+                    "type": "string",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": "8c857501-e67d-4a0b-98d9-46e461b42c09"
+                },
+                "limit": {
+                    "type": "integer",
+                    "x-nullable": false,
+                    "x-omitempty": false,
+                    "example": 50
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/payment"
+                    },
+                    "x-nullable": false,
+                    "x-omitempty": false
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "TokenAuth": {
+            "type": "apiKey",
+            "name": "X-O2PAY-TOKEN",
+            "in": "header"
+        }
+    },
+    "security": [{
+        "TokenAuth": []
+    }],
+    "tags": [{
+        "description": "Links are the easy way of accepting payments from your customers.\nEach link represents a pre-defined payment with amount and description.\nCustomer can create a payment on-the-fly by visiting `https://pay.streampayments.co/link/\u003clink\u003e`\n",
+        "name": "PaymentLink"
+    }]
+}
